@@ -4,17 +4,10 @@
 #include "Classes.h";
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
 	Command command1;
-	UsefulFunctions function;
-	int counter1 = 0;
-	int counter2 = 0;
-//	cout<<function.extract("CREATE        TABLE", 'C', ' ', counter1, counter2);
-	command1.setName("CREATETABLE");
-	string name = command1.getName();
-	
-	string stWord = command1.getFirstWord();
-	string ndWord = command1.getSecondWord();
-	cout << endl << name << endl << stWord << endl << ndWord;
+	cin >> command1;
+	Parser parser(command1);
+	parser.Parse(command1);
 }
