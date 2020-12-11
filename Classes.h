@@ -113,6 +113,18 @@ public:
 		return str;
 	}
 
+	string subStringWithoutSpaces(string str)
+	{
+		int i = 0;
+		string result;
+		while (str[i] == ' ')
+		{
+			i++;
+		}
+		result = str.erase(0, i);
+		return result;
+	}
+
 	string stringWithoutCommasOrSpaces(string str) {
 		str.erase(remove(str.begin(), str.end(), ' '), str.end());
 		int i = 0;
@@ -133,7 +145,8 @@ class Command
 	string commandFirst = "";
 	string commandSecond = "";
 	UsefulFunctions function;
-public: //aminteste-ti sa stergi "public:" dupa verificare!!!!!!!!!!!!!
+
+private:
 	void setWords(string& name, string& commandFirst, string& commandSecond)
 	{
 		int counter1 = 0;
@@ -283,6 +296,7 @@ void operator <<(ostream& out, Command command) {
 //THE COMMANDS
 
 //1. DROP
+//MERGE PENTRU TOATE EXEMPLELE
 class DropCommand
 {
 	Command command;
@@ -291,12 +305,13 @@ public:
 	DropCommand(Command command)
 	{
 		checkDrop(command.getName());
+
 	}
 private:
 	void checkDrop(string commandName)
 	{
-
-		if (function.findChars(commandName, function.CAPS) == 1 || function.findChars(commandName, function.SIGNS) == 1 || function.findChars(commandName, function.NoCAPS) == 0)
+		commandName = function.subStringWithoutSpaces(commandName);
+		if (function.findChars(commandName, function.CAPS) == 1 || function.findChars(commandName, function.SIGNS) == 1 || function.findChars(commandName, function.NoCAPS) == 0 || function.findChars(commandName, " ")==true)
 		{
 			throw new InvalidCommandException("The DROP command has the wrong table name", 0);
 		}
@@ -308,6 +323,7 @@ private:
 };
 
 //2. DISPLAY
+//MERGE PENTRU TOATE EXEMPLELE
 class DisplayCommand
 {
 	Command command;
@@ -322,7 +338,8 @@ public:
 private:
 	void checkDisplay(string commandName)
 	{
-		if (function.findChars(commandName, function.CAPS) == 1 || function.findChars(commandName, function.SIGNS) == 1 || function.findChars(commandName, function.NoCAPS) == 0)
+		commandName = function.subStringWithoutSpaces(commandName);
+		if (function.findChars(commandName, function.CAPS) == 1 || function.findChars(commandName, function.SIGNS) == 1 || function.findChars(commandName, function.NoCAPS) == 0 || function.findChars(commandName, " ")==true)
 		{
 			throw new InvalidCommandException("The DISPLAY command has the wrong table name", 0);
 		}
@@ -334,6 +351,7 @@ private:
 };
 
 //3.CREATE
+//NU MERGE PENTRU IF NOT EXIST
 class CreateCommand
 {
 	Command command;
@@ -344,42 +362,6 @@ public:
 		ValidareSerioasaCreate(command.getName());
 	}
 private:
-	/*bool checkAsciiValue(string str, char a, char b) {
-		int counter = 0;
-		for (int i = 0; i < str.length(); i++)
-			if (str[i]<a || str[i]>b)
-				counter++;
-		if (counter)
-			return true;
-		else return false;
-	}
-	int nrChars(string str, char a, int& counter) {
-		counter = 0;
-		for (int i = 0; i < str.length(); i++) {
-			if (str[i] == a)
-				counter++;
-		}
-		return counter;
-	}*/
-
-	//MODIFICARI VALI 
-	/*string stringWithoutSpaces(string str) {
-		str.erase(remove(str.begin(), str.end(), ' '), str.end());
-		return str;
-	}
-
-	string stringWithoutCommasOrSpaces(string str) {
-		str.erase(remove(str.begin(), str.end(), ' '), str.end());
-		int i = 0;
-		while (i < str.length()) {
-			if (str[i] == ',' && str[i + 1] == '(' && str[i - 1] == ')') {
-				str.erase(i, 1);
-				i--;
-			}
-			i++;
-		}
-		return str;
-	}*/
 
 	void createParamVandPars(string command, string& cName, string& cType, int& cDim, string& defaultVal) {
 		// we strip the first column details by   ' ( '   ' ) ' 
@@ -506,99 +488,124 @@ private:
 	void checkSelect(string commandName)
 	{
 		int counter1 = 0, counter2 = 0;
+		commandName = function.subStringWithoutSpaces(commandName);
 		if (commandName[0] != 'A')
 		{
-			string columnList = function.extract(commandName, '(', ')', counter1, counter2);
-			int size = columnList.length();
-			columnList.erase(0, 1);
-			int i = 0;
-			int j = noValues(columnList);
-			string* value = new string[1000];
-			while (i < j)
+			string selectedValues = function.extract(commandName, commandName[0], commandName[commandName.find_last_of(')')], counter1, counter2);
+
+			//check the selected values
+			if (selectedValues[0] != '(' || selectedValues[selectedValues.length()] != ')')
 			{
-				counter1 = 0; counter2 = 0;
-				value[i] = function.extract(columnList, columnList[0], ',', counter1, counter2);
-				if (function.findChars(value[i], function.CAPS) == 1 || function.findChars(value[i], function.SIGNS) == 1)
+				throw new InvalidCommandException("Not a column", 0);
+			}
+			else
+			{
+				int i = 0;
+				while (i<noColumns)
+				int counter11 = 0, counter12 = 0;
+				string column = function.extract(selectedValues, selectedValues[1], commandName[commandName.find_first_of(',')], counter11, counter12);
+				if (function.findChars(column, function.CAPS) == true || function.findChars(column, function.SIGNS) == true || function.findChars(column, " ") == true)
 				{
-					throw new InvalidCommandException("The SELECT command hasn't got the proper column values", 0);
+					throw new InvalidCommandException("Not proper column name", 0);
 				}
-				columnList.erase(0, value[i].length() + 1);
-				i++;
-			}
-			value[i] = columnList;
-			if (function.findChars(value[i], function.CAPS) == 1 || function.findChars(value[i], function.SIGNS) == 1 || i == 0)
-			{
-				throw new InvalidCommandException("The SELECT command hasn't got the proper column/ALL values", 0);
-			}
-			commandName.erase(0, size + 2);
-			delete[]value;
-		}
-		else
-		{
-			if (function.extract(commandName, commandName[0], ' ', counter1, counter2) != "ALL")
-			{
-				throw new InvalidCommandException("The SELECT command hasn't got the proper column/ALL values", 0);
-			}
-			else commandName.erase(0, 4);
-		}
-		if (function.extract(commandName, commandName[0], ' ', counter1, counter2) != "FROM")
-		{
-			throw new InvalidCommandException("The SELECT command hasn't got the proper FROM keyword", 0);
-		}
-		commandName.erase(0, 5);
-		counter1 = 0, counter2 = 0;
-		if (function.findChars(commandName, "WHERE") == 1)
-		{
-			string tableName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-			commandName.erase(0, tableName.length() + 1);
-			if (function.findChars(tableName, function.CAPS) == 1 || function.findChars(tableName, function.SIGNS) == 1)
-			{
-				throw new InvalidCommandException("The SELECT command has the wrong table name", 0);
-			}
-			//check WHERE
-			counter1 = 0, counter2 = 0;
-			string WHERE = commandName.substr(0, 5);
-			commandName.erase(0, 6);
-			if (WHERE != "WHERE")
-			{
-				throw new InvalidCommandException("The UPDATE command hasn't got the WHERE keyword!", 0);
-			}
-			//check columnName to be changed
-			counter1 = 0, counter2 = 0;
-			string columnName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-			commandName.erase(0, columnName.length() + 1);
-			if (function.findChars(columnName, function.CAPS) == 1 || function.findChars(columnName, function.SIGNS) == 1)
-			{
-				throw new InvalidCommandException("The UPDATE command hasn't got the proper column name", 0);
-			}
-			//check equal AGAIN
-			counter1 = 0, counter2 = 0;
-			if (commandName[0] != '=')
-			{
-				throw new InvalidCommandException("The UPDATE command hasn't got the EQUAL sign", 0);
-			}
-			commandName.erase(0, 2);
-			//check column value to be updated
-			counter1 = 0, counter2 = 0;
-			string columnValue = function.extract(commandName, commandName[0], commandName[commandName.length()], counter1, counter2);
-			commandName.erase(0, columnValue.length());
-			if (function.findChars(columnValue, function.SIGNS) == 1)
-			{
-				throw new InvalidCommandException("The UPDATE command hasn't got the proper column value sign", 0);
 			}
 		}
-		else
-		{
-			string tableName = function.extract(commandName, commandName[0], commandName[commandName.length()], counter1, counter2);
-			commandName.erase(0, tableName.length());
-			if (function.findChars(tableName, function.CAPS) == 1 || function.findChars(tableName, function.SIGNS) == 1)
-			{
-				throw new InvalidCommandException("The SELECT command has the wrong table name", 0);
-			}
-		}
-		if (commandName == "")
-			cout << "DONE!";
 	}
+	//{
+	//	int counter1 = 0, counter2 = 0;
+	//	if (commandName[0] != 'A')
+	//	{
+	//		string columnList = function.extract(commandName, '(', ')', counter1, counter2);
+	//		int size = columnList.length();
+	//		columnList.erase(0, 1);
+	//		int i = 0;
+	//		int j = noValues(columnList);
+	//		string* value = new string[1000];
+	//		while (i < j)
+	//		{
+	//			counter1 = 0; counter2 = 0;
+	//			value[i] = function.extract(columnList, columnList[0], ',', counter1, counter2);
+	//			if (function.findChars(value[i], function.CAPS) == 1 || function.findChars(value[i], function.SIGNS) == 1)
+	//			{
+	//				throw new InvalidCommandException("The SELECT command hasn't got the proper column values", 0);
+	//			}
+	//			columnList.erase(0, value[i].length() + 1);
+	//			i++;
+	//		}
+	//		value[i] = columnList;
+	//		if (function.findChars(value[i], function.CAPS) == 1 || function.findChars(value[i], function.SIGNS) == 1 || i == 0)
+	//		{
+	//			throw new InvalidCommandException("The SELECT command hasn't got the proper column/ALL values", 0);
+	//		}
+	//		commandName.erase(0, size + 2);
+	//		delete[]value;
+	//	}
+	//	else
+	//	{
+	//		if (function.extract(commandName, commandName[0], ' ', counter1, counter2) != "ALL")
+	//		{
+	//			throw new InvalidCommandException("The SELECT command hasn't got the proper column/ALL values", 0);
+	//		}
+	//		else commandName.erase(0, 4);
+	//	}
+	//	if (function.extract(commandName, commandName[0], ' ', counter1, counter2) != "FROM")
+	//	{
+	//		throw new InvalidCommandException("The SELECT command hasn't got the proper FROM keyword", 0);
+	//	}
+	//	commandName.erase(0, 5);
+	//	counter1 = 0, counter2 = 0;
+	//	if (function.findChars(commandName, "WHERE") == 1)
+	//	{
+	//		string tableName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
+	//		commandName.erase(0, tableName.length() + 1);
+	//		if (function.findChars(tableName, function.CAPS) == 1 || function.findChars(tableName, function.SIGNS) == 1)
+	//		{
+	//			throw new InvalidCommandException("The SELECT command has the wrong table name", 0);
+	//		}
+	//		//check WHERE
+	//		counter1 = 0, counter2 = 0;
+	//		string WHERE = commandName.substr(0, 5);
+	//		commandName.erase(0, 6);
+	//		if (WHERE != "WHERE")
+	//		{
+	//			throw new InvalidCommandException("The UPDATE command hasn't got the WHERE keyword!", 0);
+	//		}
+	//		//check columnName to be changed
+	//		counter1 = 0, counter2 = 0;
+	//		string columnName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
+	//		commandName.erase(0, columnName.length() + 1);
+	//		if (function.findChars(columnName, function.CAPS) == 1 || function.findChars(columnName, function.SIGNS) == 1)
+	//		{
+	//			throw new InvalidCommandException("The UPDATE command hasn't got the proper column name", 0);
+	//		}
+	//		//check equal AGAIN
+	//		counter1 = 0, counter2 = 0;
+	//		if (commandName[0] != '=')
+	//		{
+	//			throw new InvalidCommandException("The UPDATE command hasn't got the EQUAL sign", 0);
+	//		}
+	//		commandName.erase(0, 2);
+	//		//check column value to be updated
+	//		counter1 = 0, counter2 = 0;
+	//		string columnValue = function.extract(commandName, commandName[0], commandName[commandName.length()], counter1, counter2);
+	//		commandName.erase(0, columnValue.length());
+	//		if (function.findChars(columnValue, function.SIGNS) == 1)
+	//		{
+	//			throw new InvalidCommandException("The UPDATE command hasn't got the proper column value sign", 0);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		string tableName = function.extract(commandName, commandName[0], commandName[commandName.length()], counter1, counter2);
+	//		commandName.erase(0, tableName.length());
+	//		if (function.findChars(tableName, function.CAPS) == 1 || function.findChars(tableName, function.SIGNS) == 1)
+	//		{
+	//			throw new InvalidCommandException("The SELECT command has the wrong table name", 0);
+	//		}
+	//	}
+	//	if (commandName == "")
+	//		cout << "DONE!";
+	//}
 	int noValues(string Column)
 	{
 		int noValues = 0;
