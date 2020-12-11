@@ -73,6 +73,7 @@ public:
 		subString = str.substr(counter1, counter2);
 		return subString;
 	}
+
 	bool findChars(string command, const char* chars) {
 		int i = 0;
 		int counter = 0;
@@ -86,6 +87,43 @@ public:
 		if (counter)
 			return true;
 		else return false;
+	}
+
+	bool checkAsciiValue(string str, char a, char b) {
+		int counter = 0;
+		for (int i = 0; i < str.length(); i++)
+			if (str[i]<a || str[i]>b)
+				counter++;
+		if (counter)
+			return true;
+		else return false;
+	}
+
+	int nrChars(string str, char a, int& counter) {
+		counter = 0;
+		for (int i = 0; i < str.length(); i++) {
+			if (str[i] == a)
+				counter++;
+		}
+		return counter;
+	}
+
+	string stringWithoutSpaces(string str) {
+		str.erase(remove(str.begin(), str.end(), ' '), str.end());
+		return str;
+	}
+
+	string stringWithoutCommasOrSpaces(string str) {
+		str.erase(remove(str.begin(), str.end(), ' '), str.end());
+		int i = 0;
+		while (i < str.length()) {
+			if (str[i] == ',' && str[i + 1] == '(' && str[i - 1] == ')') {
+				str.erase(i, 1);
+				i--;
+			}
+			i++;
+		}
+		return str;
 	}
 };
 
@@ -298,69 +336,22 @@ private:
 //3.CREATE
 class CreateCommand
 {
-	//VALI: eu zic sa incerci sa stergi extract-ul si bool-ul ala de aici si sa declari un function din clasa UsefullFunctions aia si sa folosesti function.extract
-	//am facut eu asta pt celelalte clase, daca vrei sa faci si tu pt asta inspira-te de acolo, eu n-am vrut sa fac ca mi-e ca iti stric ceva pe aici
 	Command command;
+	UsefulFunctions function;
 public:
 	CreateCommand(Command command)
 	{
 		ValidareSerioasaCreate(command.getName());
 	}
 private:
-	bool findChars(string command, char* chars) {
-		int i = 0;
+	/*bool checkAsciiValue(string str, char a, char b) {
 		int counter = 0;
-		while (i < strlen(chars)) {
-			for (int j = 0; j < command.length(); j++) {
-				if (chars[i] == command[j])
-					counter++;
-			}
-			i++;
-		}
-		if (counter)
-			return true;
-		else return false;
-	}
-
-	string extract(string str, char a, char b, int& counter1, int& counter2) {
-		string subString;
-		int i = 0;
-		counter1 = -1;
-		counter2 = 0;
-		while (i < str.length()) {  // pornim pozitia i =0 
-			if (str[i] == a && str[i + 1] != a)
-			{
-				int j;
-				if (i == 0) {
-					counter1 = 0;
-					j = i;
-
-				}
-				else {
-					counter1 = i + 1;
-					j = i + 1;
-				}
-				while (str[j] != b)
-				{
-					counter2++;
-					j++;
-				}
-			}
-			if (counter1 != -1 && counter2 != 0)
-				i = str.length();
-			i++;
-		}
-		subString = str.substr(counter1, counter2);
-		return subString;
-	}
-	bool checkAsciiValue(string str, int a, int b) {
-		int counter = -1;
 		for (int i = 0; i < str.length(); i++)
 			if (str[i]<a || str[i]>b)
 				counter++;
 		if (counter)
-			return false;
-		else return true;
+			return true;
+		else return false;
 	}
 	int nrChars(string str, char a, int& counter) {
 		counter = 0;
@@ -369,87 +360,134 @@ private:
 				counter++;
 		}
 		return counter;
+	}*/
+
+	//MODIFICARI VALI 
+	/*string stringWithoutSpaces(string str) {
+		str.erase(remove(str.begin(), str.end(), ' '), str.end());
+		return str;
 	}
-	void ValidareSerioasaCreate(string commanda) {// int& noColumns, string& name, string& type, int& dimension, string& defaultValue  ) {
+
+	string stringWithoutCommasOrSpaces(string str) {
+		str.erase(remove(str.begin(), str.end(), ' '), str.end());
+		int i = 0;
+		while (i < str.length()) {
+			if (str[i] == ',' && str[i + 1] == '(' && str[i - 1] == ')') {
+				str.erase(i, 1);
+				i--;
+			}
+			i++;
+		}
+		return str;
+	}*/
+
+	void createParamVandPars(string command, string& cName, string& cType, int& cDim, string& defaultVal) {
+		// we strip the first column details by   ' ( '   ' ) ' 
+		string editable = command.substr(command.find_first_not_of('('), command.find_last_of(')') - 1);
+		string parametriiTabel;
+		int counter;
+		int contorEditable = 0;
+		int limitEditable = function.nrChars(editable, ',', counter) + 1;
+		if (function.nrChars(editable, ',', counter) != 3) {
+			throw new InvalidCommandException("Too few terms inside the brackets", 0);
+		}
+		// we make sure we get rid of the spaces too 
+		editable = function.stringWithoutSpaces(editable);
+		// we  will now take every parameter to check if its the right data type 
+		while (contorEditable < limitEditable) {
+			parametriiTabel = editable.substr(0, editable.find_first_of(','));
+			// for the first param we need a name so only text and after that we pass it to the cName
+			if (contorEditable == 0) {
+				if (function.checkAsciiValue(parametriiTabel, 'a', 'z') != 0) {
+					throw new InvalidCommandException("Is not a text", 0);
+				}
+				else {
+					cName = parametriiTabel;
+					cout << endl;
+					cout << endl << "** Primul parametrul este nume *" << cName << "* si este valid ";
+				}
+			}
+			//for the 2nd param we need a text but this time denoting one of the types, check type and pass it to the cType 
+			if (contorEditable == 1) {
+				if (parametriiTabel == "text" || parametriiTabel == "integer" || parametriiTabel == "float") {
+					cType = parametriiTabel;
+					cout << endl;
+					cout << endl << "** Parametrul al doilea este type*" << cType << "* si este valid ";
+				}
+				else {
+					throw new InvalidCommandException("Second parameter has an error", 0);
+				}
+
+			}
+			//for the 3rd param we need an integer, we check to see if only digits and convert string to int 
+			if (contorEditable == 2) {
+				if (function.checkAsciiValue(parametriiTabel, '0', '9') == 0) {
+					cDim = stoi(parametriiTabel);
+					cout << endl;
+					cout << endl << "** Parametrul al treilea este int*" << cDim << "* si este valid ";
+				}
+				else {
+					throw new InvalidCommandException("Wrong third parameter", 0);
+				}
+			}
+			// here i dont know for sure what checks needs to be done but the passing to the cValue its made 
+			if (contorEditable == 3) {
+				if (parametriiTabel.find_first_of('’')) {
+					parametriiTabel.erase(remove(parametriiTabel.begin(), parametriiTabel.end(), '’'), parametriiTabel.end());
+				}
+				defaultVal = parametriiTabel;
+				cout << endl;
+				cout << endl << "** Parametrul al 4 lea este default(string) *" << parametriiTabel << "* si este valid";
+			}
+			editable.erase(0, parametriiTabel.length() + 1);
+			contorEditable++;
+		}
+	}
+
+	void ValidareSerioasaCreate(string commanda) {// string& name, string& type, int& dim, string& value) {
 		string newCommand = commanda;
 		string editable;
 		string parametriiTabel;
-		int counter1, counter2;
-		char numbers[50] = "0123456789";
-		editable = extract(commanda, commanda[0], '(', counter1, counter2);
-		if (findChars(editable, numbers) || checkAsciiValue(editable, 97, 122) == 0) {
+		string copyEditable;
+		// parametrii ce vor putea fi dati si de sus cand doriti 
+		string name;
+		string type;
+		int dim;
+		string value;
+		// next
+		// in order to check everything first we strip the table name until ( by any spaces in order to check it lexically 
+		editable = newCommand.substr(0, newCommand.find_first_of('('));
+		copyEditable = function.stringWithoutSpaces(editable);
+		if (function.checkAsciiValue(copyEditable, 'a', 'z') != 0) {
 			throw new InvalidCommandException("Wrong table name", 0);
 		}
 		else {
 			int counter;
-			newCommand.erase(counter1, editable.length());
-			if ((nrChars(newCommand, '(', counter) != nrChars(newCommand, ')', counter)) || ((nrChars(newCommand, '(', counter) + (nrChars(newCommand, ')', counter))) % 2 != 0)) {
+			newCommand.erase(0, editable.length());
+			if ((function.nrChars(newCommand, '(', counter) != function.nrChars(newCommand, ')', counter)) || ((function.nrChars(newCommand, '(', counter) + (function.nrChars(newCommand, ')', counter))) % 2 != 0)) {
 				throw new InvalidCommandException("Wrong number of parantesis!", 0);
 			}
-
+			//after it was checked, if we have only one column we call the function once 
 			else {
-				int contorIf = 1;
-				int contorElse = 1;
-				while (newCommand.length() > 2) {
-					if (nrChars(newCommand, '(', counter) <= 1) {
-						int contorEditable = 0;
-						editable = extract(newCommand, '(', ')', counter1, counter2);
-						newCommand.erase(counter1 + 1, editable.length() - 1);
-						int limitaEditable = nrChars(editable, ',', counter) + 1;
-						contorIf++;
+				if (function.nrChars(newCommand, '(', counter) == 1) {
+					createParamVandPars(newCommand, name, type, dim, value);
+					cout << "DONE!";
+				}
+				else   // else we will strip the columns by the commas and spaces dividing them and then call the functions one by one while also deleting from the command string
+				{
+					newCommand = newCommand.substr(newCommand.find_first_of('(') + 1, newCommand.find_last_of(')') - 1);
+					newCommand = function.stringWithoutCommasOrSpaces(newCommand);
+					while (newCommand.length()) {
+
+						parametriiTabel = newCommand.substr(0, newCommand.find_first_of(')') + 1);
+						createParamVandPars(parametriiTabel, name, type, dim, value);
+						newCommand.erase(0, parametriiTabel.length());
 					}
-					else {
-
-						int contorEditable = 0;
-						editable = extract(newCommand, '(', ')', counter1, counter2);
-						if (nrChars(editable, ',', counter) != 3) {
-							throw new InvalidCommandException("Too few terms inside the brackets", 0);
-						}
-						newCommand.erase(counter1 - 1, counter2 + 4);
-						int limitaEditable = nrChars(editable, ',', counter) + 1;
-						while (contorEditable < limitaEditable) {
-							if (contorEditable == 0) {
-								parametriiTabel = extract(editable, editable[0], ',', counter1, counter2);
-								if (checkAsciiValue(parametriiTabel, 97, 122) == 0) {
-									size_t firstVirgula = editable.find(',');
-									editable.erase(0, firstVirgula + 2);
-								}
-								else {
-									throw new InvalidCommandException("Is not a text", 0);
-								}
-							}
-							if (contorEditable == 1) {
-								parametriiTabel = extract(editable, editable[0], ',', counter1, counter2);
-								if (parametriiTabel == "text" || parametriiTabel == "integer" || parametriiTabel == "float") {
-									size_t firstVirgula = editable.find(',');
-									editable.erase(0, firstVirgula + 2);
-								}
-								else {
-									throw new InvalidCommandException("Second parameter has an error", 0);
-								}
-							}
-							if (contorEditable == 2) {
-								parametriiTabel = extract(editable, editable[0], ',', counter1, counter2);
-								if (checkAsciiValue(parametriiTabel, 48, 57) == 0) {
-									size_t firstVirgula = editable.find(',');
-									editable.erase(0, firstVirgula + 2);
-								}
-								else {
-									throw new InvalidCommandException("Wrong third parameter", 0);
-								}
-							}
-							contorEditable++;
-
-						}
-						contorElse++;
-
-					}
+					cout << endl << "DONE!";
 				}
 			}
 
 		}
-		cout << "DONE!";
-
 	}
 };
 
