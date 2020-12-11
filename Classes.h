@@ -39,38 +39,11 @@ public:
 	const char* SIGNS = "(), ";
 	const char* NoCAPS = "abcdefghijklmnoprstuvxyz";
 	string extract(string str, char a, char b, int& counter1, int& counter2) {
-		//VALI: avand in vedere ca nu avem deloc nevoie sa salvam spatiile dintre cuvinte eu zic sa adaugi in functie o chestie care sterge toate 
-		//spatiile pana la urmatorul cuvand, dar doar daca b-ul e spatiu (nuj parerea mea, ma gandesc ca e mai simplu sa facem asta direct in 
-		//functie decat sa o faci pt fiecare comanda (CREATE, INSERT, etc)
+		
 		string subString;
-		int i = 0;
-		counter1 = -1;
-		counter2 = 0;
-		while (i < str.length()) {
-			if (str[i] == a && str[i + 1] != a)
-			{
-				int j;
-				if (i == 0) {
-					counter1 = 0;
-					j = i;
-				}
-				else {
-					counter1 = i + 1;
-					j = i + 1;
-				}
-				while (str[j] != b)
-				{
-					counter2++;
-					j++;
-					//VALI: aici cred ca trebuie sa pui o conditie in care sa verifici daca ajungi la sfarsitul string-ului si nu se indeplineste conditia
-					//adica daca stringul e CREATETABLE si faci extract de la string[0] pana la 'spatiu' cred o sa ai o bucla infinta ca str[j] nu o sa fie niciodata egal cu 'spatiu'
-				}
-			}
-			if (counter1 != -1 && counter2 != 0)
-				i = str.length();
-			i++;
-		}
-		subString = str.substr(counter1, counter2);
+		counter1 = str.find_first_of(a);
+		counter2 = str.find_first_of(b);
+		subString = str.substr(counter1, counter2 - counter1);
 		return subString;
 	}
 
@@ -116,12 +89,16 @@ public:
 	string subStringWithoutSpaces(string str)
 	{
 		int i = 0;
-		string result;
-		while (str[i] == ' ')
+		string result=str;
+		if (str[i] == ' ')
 		{
-			i++;
+			while (str[i] == ' ')
+			{
+				i++;
+			}
+			str.erase(0, i);
 		}
-		result = str.erase(0, i);
+		result = str;
 		return result;
 	}
 
@@ -440,6 +417,18 @@ private:
 		// in order to check everything first we strip the table name until ( by any spaces in order to check it lexically 
 		editable = newCommand.substr(0, newCommand.find_first_of('('));
 		copyEditable = function.stringWithoutSpaces(editable);
+		if (function.nrChars(copyEditable, 'I', dim) == 2)
+		{
+			int noLettersTableName = 0;
+			noLettersTableName = copyEditable.find_first_of('I');
+			if (copyEditable.compare(copyEditable.find_first_of('I'), 11, "IFNOTEXISTS") == 0 && copyEditable.length() == (noLettersTableName + 11)) {
+				//here we should also check the str.substr(0,noLettersTable) with a table name to see if the table exists or not 
+				copyEditable = copyEditable.erase(copyEditable.find_first_of('I'), 11);
+				cout << endl << "We create new table " << copyEditable;
+			}
+		}
+			else
+				throw new InvalidCommandException("wrong if not exists", 0);
 		if (function.checkAsciiValue(copyEditable, 'a', 'z') != 0) {
 			throw new InvalidCommandException("Wrong table name", 0);
 		}
@@ -491,23 +480,45 @@ private:
 		commandName = function.subStringWithoutSpaces(commandName);
 		if (commandName[0] != 'A')
 		{
-			string selectedValues = function.extract(commandName, commandName[0], commandName[commandName.find_last_of(')')], counter1, counter2);
-
+			string selectedValues = function.extract(commandName, commandName[0], commandName[commandName.find_last_of(')')+1], counter1, counter2);
+			commandName.erase(0, selectedValues.length());
 			//check the selected values
-			if (selectedValues[0] != '(' || selectedValues[selectedValues.length()] != ')')
+			if (selectedValues[0] != '(' || selectedValues[selectedValues.length()-1] != ')')
 			{
 				throw new InvalidCommandException("Not a column", 0);
 			}
 			else
 			{
-				int i = 0;
-				while (i<noColumns)
-				int counter11 = 0, counter12 = 0;
-				string column = function.extract(selectedValues, selectedValues[1], commandName[commandName.find_first_of(',')], counter11, counter12);
-				if (function.findChars(column, function.CAPS) == true || function.findChars(column, function.SIGNS) == true || function.findChars(column, " ") == true)
+				while (selectedValues != "(")
 				{
-					throw new InvalidCommandException("Not proper column name", 0);
+
+					//check every column between ()
+					int counter11 = 0, counter12 = 0;
+					string column;
+					if (selectedValues.find(',') != string::npos)
+					{
+						column = function.extract(selectedValues, selectedValues[1], selectedValues[selectedValues.find_first_of(',')], counter11, counter12);
+					}
+					else
+					{
+						column= function.extract(selectedValues, selectedValues[1], selectedValues[selectedValues.find_first_of(')')], counter11, counter12);
+					}
+					if (function.findChars(column, function.CAPS) == true || function.findChars(column, function.SIGNS) == true || function.findChars(column, " ") == true)
+					{
+						throw new InvalidCommandException("Not proper column name", 0);
+					}
+					selectedValues.erase(counter11, counter12);
+					selectedValues = function.subStringWithoutSpaces(selectedValues);
 				}
+				commandName=function.subStringWithoutSpaces(commandName);
+				counter1 = counter2 = 0;
+				if (function.extract(commandName, commandName[0], commandName[4], counter1, counter2) != "FROM")
+				{
+					throw new InvalidCommandException("HASN't GOT FROM KEYWORD", 0);
+				}
+				commandName.erase(0, 4);
+				commandName = function.subStringWithoutSpaces(commandName);
+				cout << commandName;
 			}
 		}
 	}
