@@ -464,6 +464,7 @@ private:
 
 
 //4. SELECT
+//MERGE PENTRU TOATE EXEMPLELE
 class SelectCommand
 {
 	Command command;
@@ -480,10 +481,10 @@ private:
 		commandName = function.subStringWithoutSpaces(commandName);
 		if (commandName[0] != 'A')
 		{
-			string selectedValues = function.extract(commandName, commandName[0], commandName[commandName.find_last_of(')')+1], counter1, counter2);
+			string selectedValues = function.extract(commandName, commandName[0], commandName[commandName.find_last_of(')') + 1], counter1, counter2);
 			commandName.erase(0, selectedValues.length());
 			//check the selected values
-			if (selectedValues[0] != '(' || selectedValues[selectedValues.length()-1] != ')')
+			if (selectedValues[0] != '(' || selectedValues[selectedValues.length() - 1] != ')' || selectedValues=="()")
 			{
 				throw new InvalidCommandException("Not a column", 0);
 			}
@@ -501,7 +502,7 @@ private:
 					}
 					else
 					{
-						column= function.extract(selectedValues, selectedValues[1], selectedValues[selectedValues.find_first_of(')')], counter11, counter12);
+						column = function.extract(selectedValues, selectedValues[1], selectedValues[selectedValues.find_first_of(')')], counter11, counter12);
 					}
 					if (function.findChars(column, function.CAPS) == true || function.findChars(column, function.SIGNS) == true || function.findChars(column, " ") == true)
 					{
@@ -510,124 +511,65 @@ private:
 					selectedValues.erase(counter11, counter12);
 					selectedValues = function.subStringWithoutSpaces(selectedValues);
 				}
-				commandName=function.subStringWithoutSpaces(commandName);
-				counter1 = counter2 = 0;
-				if (function.extract(commandName, commandName[0], commandName[4], counter1, counter2) != "FROM")
-				{
-					throw new InvalidCommandException("HASN't GOT FROM KEYWORD", 0);
-				}
-				commandName.erase(0, 4);
 				commandName = function.subStringWithoutSpaces(commandName);
-				cout << commandName;
 			}
 		}
-	}
-	//{
-	//	int counter1 = 0, counter2 = 0;
-	//	if (commandName[0] != 'A')
-	//	{
-	//		string columnList = function.extract(commandName, '(', ')', counter1, counter2);
-	//		int size = columnList.length();
-	//		columnList.erase(0, 1);
-	//		int i = 0;
-	//		int j = noValues(columnList);
-	//		string* value = new string[1000];
-	//		while (i < j)
-	//		{
-	//			counter1 = 0; counter2 = 0;
-	//			value[i] = function.extract(columnList, columnList[0], ',', counter1, counter2);
-	//			if (function.findChars(value[i], function.CAPS) == 1 || function.findChars(value[i], function.SIGNS) == 1)
-	//			{
-	//				throw new InvalidCommandException("The SELECT command hasn't got the proper column values", 0);
-	//			}
-	//			columnList.erase(0, value[i].length() + 1);
-	//			i++;
-	//		}
-	//		value[i] = columnList;
-	//		if (function.findChars(value[i], function.CAPS) == 1 || function.findChars(value[i], function.SIGNS) == 1 || i == 0)
-	//		{
-	//			throw new InvalidCommandException("The SELECT command hasn't got the proper column/ALL values", 0);
-	//		}
-	//		commandName.erase(0, size + 2);
-	//		delete[]value;
-	//	}
-	//	else
-	//	{
-	//		if (function.extract(commandName, commandName[0], ' ', counter1, counter2) != "ALL")
-	//		{
-	//			throw new InvalidCommandException("The SELECT command hasn't got the proper column/ALL values", 0);
-	//		}
-	//		else commandName.erase(0, 4);
-	//	}
-	//	if (function.extract(commandName, commandName[0], ' ', counter1, counter2) != "FROM")
-	//	{
-	//		throw new InvalidCommandException("The SELECT command hasn't got the proper FROM keyword", 0);
-	//	}
-	//	commandName.erase(0, 5);
-	//	counter1 = 0, counter2 = 0;
-	//	if (function.findChars(commandName, "WHERE") == 1)
-	//	{
-	//		string tableName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-	//		commandName.erase(0, tableName.length() + 1);
-	//		if (function.findChars(tableName, function.CAPS) == 1 || function.findChars(tableName, function.SIGNS) == 1)
-	//		{
-	//			throw new InvalidCommandException("The SELECT command has the wrong table name", 0);
-	//		}
-	//		//check WHERE
-	//		counter1 = 0, counter2 = 0;
-	//		string WHERE = commandName.substr(0, 5);
-	//		commandName.erase(0, 6);
-	//		if (WHERE != "WHERE")
-	//		{
-	//			throw new InvalidCommandException("The UPDATE command hasn't got the WHERE keyword!", 0);
-	//		}
-	//		//check columnName to be changed
-	//		counter1 = 0, counter2 = 0;
-	//		string columnName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-	//		commandName.erase(0, columnName.length() + 1);
-	//		if (function.findChars(columnName, function.CAPS) == 1 || function.findChars(columnName, function.SIGNS) == 1)
-	//		{
-	//			throw new InvalidCommandException("The UPDATE command hasn't got the proper column name", 0);
-	//		}
-	//		//check equal AGAIN
-	//		counter1 = 0, counter2 = 0;
-	//		if (commandName[0] != '=')
-	//		{
-	//			throw new InvalidCommandException("The UPDATE command hasn't got the EQUAL sign", 0);
-	//		}
-	//		commandName.erase(0, 2);
-	//		//check column value to be updated
-	//		counter1 = 0, counter2 = 0;
-	//		string columnValue = function.extract(commandName, commandName[0], commandName[commandName.length()], counter1, counter2);
-	//		commandName.erase(0, columnValue.length());
-	//		if (function.findChars(columnValue, function.SIGNS) == 1)
-	//		{
-	//			throw new InvalidCommandException("The UPDATE command hasn't got the proper column value sign", 0);
-	//		}
-	//	}
-	//	else
-	//	{
-	//		string tableName = function.extract(commandName, commandName[0], commandName[commandName.length()], counter1, counter2);
-	//		commandName.erase(0, tableName.length());
-	//		if (function.findChars(tableName, function.CAPS) == 1 || function.findChars(tableName, function.SIGNS) == 1)
-	//		{
-	//			throw new InvalidCommandException("The SELECT command has the wrong table name", 0);
-	//		}
-	//	}
-	//	if (commandName == "")
-	//		cout << "DONE!";
-	//}
-	int noValues(string Column)
-	{
-		int noValues = 0;
-		int i = 0;
-		while (i < Column.length())
+		else
 		{
-			if (Column[i] == ',')
-				noValues++;
-			i++;
+			counter1 = counter2 = 0;
+			if (function.extract(commandName, commandName[0], commandName[3], counter1, counter2) != "ALL")
+			{
+				throw new InvalidCommandException("HASN't GOT FROM KEYWORD", 0);
+			}
+			commandName.erase(0, 3);
+			commandName = function.subStringWithoutSpaces(commandName);
 		}
-		return noValues;
+		counter1 = counter2 = 0;
+		if (function.extract(commandName, commandName[0], commandName[4], counter1, counter2) != "FROM")
+		{
+			throw new InvalidCommandException("HASN't GOT FROM KEYWORD", 0);
+		}
+		commandName.erase(0, 4);
+		commandName = function.subStringWithoutSpaces(commandName);
+		counter1 = counter2 = 0;
+		string tableName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
+		if (function.findChars(tableName, function.CAPS) == true || function.findChars(tableName, function.SIGNS) == true || function.findChars(tableName, " ") == true)
+		{
+			throw new InvalidCommandException("Not proper table name", 0);
+		}
+		commandName.erase(counter1, counter2);
+		commandName = function.subStringWithoutSpaces(commandName);
+		if (commandName != "")
+		{
+			counter1 = counter2 = 0;
+			if (function.extract(commandName, commandName[0], commandName[5], counter1, counter2) != "WHERE")
+			{
+				throw new InvalidCommandException("HASN't GOT WHERE KEYWORD", 0);
+			}
+			commandName.erase(counter1, counter2);
+			commandName = function.subStringWithoutSpaces(commandName);
+			counter1 = counter2 = 0;
+			string column = function.extract(commandName, commandName[0], ' ', counter1, counter2);
+			if (function.findChars(column, function.CAPS) == true || function.findChars(column, function.SIGNS) == true || function.findChars(column, " ") == true)
+			{
+				throw new InvalidCommandException("Not proper column name", 0);
+			}
+			commandName.erase(counter1, counter2);
+			commandName = function.subStringWithoutSpaces(commandName);
+			counter1 = counter2 = 0;
+			if (function.extract(commandName, commandName[0], commandName[1], counter1, counter2) != "=")
+			{
+				throw new InvalidCommandException("HASN't GOT = SIGN", 0);
+			}
+			commandName.erase(counter1, counter2);
+			commandName = function.subStringWithoutSpaces(commandName);
+			counter1 = counter2 = 0;
+			if (function.findChars(commandName, function.CAPS) == true || function.findChars(commandName, function.SIGNS) == true || function.findChars(commandName, " ") == true)
+			{
+				throw new InvalidCommandException("Not proper value name OR multiple conditions", 0);
+			}
+		}
+		cout << "DONE!";
 	}
 };
 
@@ -783,9 +725,143 @@ private:
 };
 
 //7.INSERT
+//7.INSERT
 class InsertCommand
 {
 	//o fac eu pe asta
+	Command command;
+	UsefulFunctions function;
+public:
+	InsertCommand(Command command) {
+		insertValidation(command.getName());
+	}
+private:
+	bool findChars(string command, char* chars) {
+		int i = 0;
+		int counter = 0;
+		while (i < strlen(chars)) {
+			for (int j = 0; j < command.length(); j++) {
+				if (chars[i] == command[j])
+					counter++;
+			}
+			i++;
+		}
+		if (counter)
+			return true;
+		else return false;
+	}
+
+	bool checkAsciiValue(string str, char a, char b) {
+		int counter = 0;
+		for (int i = 0; i < str.length(); i++)
+			if (str[i]<a || str[i]>b)
+				counter++;
+		if (counter)
+			return true;
+		else return false;
+	}
+
+	int nrChars(string str, char a, int& counter) {
+		counter = 0;
+		for (int i = 0; i < str.length(); i++) {
+			if (str[i] == a)
+				counter++;
+		}
+		return counter;
+	}
+
+	//MODIFICARI VALI 
+	string stringWithoutSpaces(string str) {
+		str.erase(remove(str.begin(), str.end(), ' '), str.end());
+		return str;
+	}
+
+	string stringWithoutCommasOrSpaces(string str) {
+		str.erase(remove(str.begin(), str.end(), ' '), str.end());
+		int i = 0;
+		while (i < str.length()) {
+			if (str[i] == ',' && str[i + 1] == '(' && str[i - 1] == ')') {
+				str.erase(i, 1);
+				i--;
+			}
+			i++;
+		}
+		return str;
+	}
+
+	void insertValidation(string Command) {
+		string newCommand = Command;
+		string editable;
+		string parametriiTabel;
+		string copyEditable;
+
+		int noParam = 0;
+		int startPoint = 0;
+		int numberOfParam = 4; // ATENTIE !! ACEST NUMAR SE VA PRIMI DIN CREATE TABLE la APELARE CUMVA
+
+		//validare paranteze 
+		if (nrChars(newCommand, '(', noParam) != 1 && nrChars(newCommand, ')', noParam) != 1) {
+			throw new InvalidCommandException("paranteze gresite ", 0);
+		}
+
+		editable = newCommand.substr(0, newCommand.find_first_of('('));
+		copyEditable = stringWithoutSpaces(editable);
+
+		//aici in parametrii avem numele tabelului: studenti
+		parametriiTabel = copyEditable.substr(0, copyEditable.find_first_of('V'));
+		if (parametriiTabel.length() == 0)
+			throw new InvalidCommandException("nu exista nume tabe ", 0);
+		else
+			cout << endl << "Numele tabelului in care se vor face modificari este " << parametriiTabel;
+
+		//aici putem face o validare daca exista tabelul sau nu  , nu voi mai face validare pt corectitudinea tabelului pt ca ar trb deja sa fie creat deci sa existe deci ajunge doar o comparatie simpla
+		//
+		//acum facem o validare lexicografica pt VALUES -
+
+		if (copyEditable.compare(copyEditable.find_first_of('V'), 6, "VALUES") == 0 && copyEditable.length() == (parametriiTabel.length() + 6)) {
+			cout << endl << "Validare reusita pana la paranteza";
+		}
+		else {
+			throw new InvalidCommandException("wrong command ", 0);
+		}
+
+		newCommand.erase(0, editable.length()); // newCommand devine (1,"John","1001")
+		editable = newCommand.substr(newCommand.find_first_not_of('('), newCommand.find_last_of(')') - 1); //editable devine 1,"John","10001"
+		editable = stringWithoutSpaces(editable);  // se elimina spatiile desi in cerinta reiese ca nu ar exista spatii 
+		noParam = nrChars(editable, ',', noParam) + 1;  // in functie de nr de virgule primim nr parametrii  no=3
+
+		// AICI MAI ESTE NEVOIE DE O VALIDARE CARE SA VERIFICE DACA NUMARUL COLOANELOR RESPECTA NUMARUL VIRGULELOR + 1 CARE SE VA AFLA IN FUNCTIE DE VALOAREA DIN CREATE A TABELULUI 
+		// INSERT INTO studenti VALUES (1,”John” ”1001”)  -- exemplul ruleaza desi e gresit.
+
+		// now we go parameter by parameter
+		while (startPoint < noParam) {
+			parametriiTabel = editable.substr(0, editable.find_first_of(','));
+			int temp = 0;
+			if (nrChars(parametriiTabel, '"', temp)) {
+				string temp = parametriiTabel.substr(1, parametriiTabel.find_last_of('"') - 1);
+				cout << endl << "Parametrul tabel la iteratie " << startPoint << " este " << temp << " si este tip string";
+			}
+			else {
+				float value;
+				string temporary = parametriiTabel;
+				if (nrChars(temporary, '.', temp) > 1)
+					throw new InvalidCommandException("too many points", 0);
+				else if (nrChars(temporary, '.', temp) == 1) {
+					temporary = temporary.erase(temporary.find_first_of('.'), 1);
+				}
+				if (checkAsciiValue(temporary, '0', '9')) {
+					throw new InvalidCommandException("nu este string dar are litere", 0);
+				}
+				else {
+					value = stof(parametriiTabel);
+					cout << endl << "Parametrul tabel la iteratie " << startPoint << " este floatul " << value;
+				}
+			}
+			editable.erase(0, parametriiTabel.length() + 1);
+			startPoint++;
+		}
+
+	}
 };
 
 
@@ -829,6 +905,10 @@ public:
 		if (FirstWord == "SELECT")
 		{
 			SelectCommand object(command);
+		}
+		if (FirstWord == "INSERT")
+		{
+			InsertCommand object(command);
 		}
 	}
 
