@@ -574,6 +574,7 @@ private:
 };
 
 //5. UPDATE
+//MERGE PENTRU TOATE EXEMPLELE
 class UpdateCommand
 {
 	Command command;
@@ -589,7 +590,8 @@ private:
 		//check table name
 		int counter1 = 0, counter2 = 0;
 		string tableName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-		commandName.erase(0, tableName.length() + 1);
+		commandName.erase(counter1, counter2);
+		commandName=function.subStringWithoutSpaces(commandName);
 		if ((tableName.find("(") != tableName.npos) || (tableName.find(" ") != tableName.npos) || (tableName.find(",") != tableName.npos))
 		{
 			throw new InvalidCommandException("The UPDATE command has the wrong table name", 0);
@@ -597,7 +599,8 @@ private:
 		//check SET KEYWORD
 		counter1 = 0, counter2 = 0;
 		string setKeyword = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-		commandName.erase(0, setKeyword.length() + 1);
+		commandName.erase(counter1, counter2);
+		commandName=function.subStringWithoutSpaces(commandName);
 		if (setKeyword != "SET")
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the SET keyword", 0);
@@ -605,30 +608,34 @@ private:
 		//check column name
 		counter1 = 0, counter2 = 0;
 		string columnName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-		commandName.erase(0, columnName.length() + 1);
+		commandName.erase(counter1, counter2);
+		commandName=function.subStringWithoutSpaces(commandName);
 		if (function.findChars(columnName, function.CAPS) == 1 || function.findChars(columnName, function.SIGNS) == 1)
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the proper column name", 0);
 		}
 		//check =
-		counter1 = 0, counter2 = 0;
+		counter1 = 0, counter2 = 1;
 		if (commandName[0] != '=')
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the EQUAL sign", 0);
 		}
+		commandName.erase(counter1, counter2);
+		commandName=function.subStringWithoutSpaces(commandName);
 		//check value to be changed
 		counter1 = 0, counter2 = 0;
-		commandName.erase(0, 2);
 		string columnValue = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-		commandName.erase(0, columnValue.length() + 1);
-		if (function.findChars(columnValue, function.SIGNS) == 1)
+		commandName.erase(counter1, counter2);
+		commandName=function.subStringWithoutSpaces(commandName);
+		if (function.findChars(columnValue, function.SIGNS) == true)
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the proper column value sign", 0);
 		}
 		//check WHERE
-		counter1 = 0, counter2 = 0;
+		counter1 = 0, counter2 = 5;
 		string WHERE = commandName.substr(0, 5);
-		commandName.erase(0, 6);
+		commandName.erase(counter1, counter2);
+		commandName=function.subStringWithoutSpaces(commandName);
 		if (WHERE != "WHERE")
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the WHERE keyword!", 0);
@@ -636,31 +643,35 @@ private:
 		//check columnName to be changed
 		counter1 = 0, counter2 = 0;
 		columnName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-		commandName.erase(0, columnName.length() + 1);
+		commandName.erase(counter1, counter2);
+		commandName=function.subStringWithoutSpaces(commandName);
 		if (function.findChars(columnName, function.CAPS) == 1 || function.findChars(columnName, function.SIGNS) == 1)
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the proper column name", 0);
 		}
 		//check equal AGAIN
-		counter1 = 0, counter2 = 0;
+		counter1 = 0, counter2 = 1;
 		if (commandName[0] != '=')
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the EQUAL sign", 0);
 		}
-		commandName.erase(0, 2);
+		commandName.erase(counter1, counter2);
+		commandName=function.subStringWithoutSpaces(commandName);
 		//check column value to be updated
 		counter1 = 0, counter2 = 0;
 		columnValue = function.extract(commandName, commandName[0], commandName[commandName.length()], counter1, counter2);
-		commandName.erase(0, columnValue.length());
+		commandName.erase(counter1, counter2);
+		commandName = function.subStringWithoutSpaces(commandName);
 		if (function.findChars(columnValue, function.SIGNS) == 1)
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the proper column value sign", 0);
 		}
-		cout << "DONE";
+		cout << "DONE!";
 	}
 };
 
 //6.DELETE
+//MERGE PENTRU TOATE EXEMPLELE
 class DeleteCommand {
 
 	Command command;
@@ -679,8 +690,10 @@ private:
 		{
 			throw new InvalidCommandException("The DELETE hasn't got the KEYWORD FROM", 0);
 		}
-		commandName.erase(0, 5);
+		commandName.erase(counter1, counter2);
+		commandName = function.subStringWithoutSpaces(commandName);
 		//check table name
+		counter1 = counter2 = 0;
 		string tableName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
 		{
 			if (function.findChars(tableName, function.CAPS) == 1 || function.findChars(tableName, function.SIGNS) == 1)
@@ -688,12 +701,14 @@ private:
 				throw new InvalidCommandException("The DELETE hasn't got the proper table name", 0);
 			}
 		}
-		commandName.erase(0, tableName.length() + 1);
+		commandName.erase(counter1, counter2);
+		commandName = function.subStringWithoutSpaces(commandName);
 		//set and check keyword WHERE
 		counter1 = 0;
 		counter2 = 0;
 		string keyWord = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-		commandName.erase(0, keyWord.length() + 1);
+		commandName.erase(counter1, counter2);
+		commandName = function.subStringWithoutSpaces(commandName);
 		if (keyWord != "WHERE")
 		{
 			throw new InvalidCommandException("The DELETE hasn't got the KEYWORD", 0);
@@ -702,18 +717,20 @@ private:
 		counter1 = 0;
 		counter2 = 0;
 		string columnName = function.extract(commandName, commandName[0], ' ', counter1, counter2);
-		commandName.erase(0, columnName.length() + 1);
 		if (function.findChars(columnName, function.CAPS) == 1 || function.findChars(columnName, function.SIGNS) == 1)
 		{
 			throw new InvalidCommandException("The DELETE command hasn't got the proper column name", 0);
 		}
+		commandName.erase(counter1, counter2);
+		commandName = function.subStringWithoutSpaces(commandName);
 		//check =
-		counter1 = 0, counter2 = 0;
+		counter1 = 0, counter2 = 1;
 		if (commandName[0] != '=')
 		{
 			throw new InvalidCommandException("The DELETE command hasn't got the EQUAL sign", 0);
 		}
-		commandName.erase(0, 2);
+		commandName.erase(counter1, counter2);
+		commandName = function.subStringWithoutSpaces(commandName);
 		//check value to be changed
 		string columnValue = commandName;
 		if (function.findChars(columnValue, function.SIGNS) == 1)
