@@ -1,13 +1,36 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <string>
+#include <fstream>
 #include "Classes.h";
 using namespace std;
 
 int main(int argc, char* argv[])
 {
-	Command command1;
-	cin >> command1;
-	Parser parser(command1);
-	parser.Parse(command1);
+	cout << "HELLO!"<<endl<<"--------------------------"<<endl;
+	cout << "argc= " << argc<<endl;
+	for (int i = 0; i < argc; i++)
+	{
+		cout << "argv[" << i << "]=" << argv[i]<<endl;
+	}
+	for (int i = 1; i < argc; i++)
+	{
+		ifstream input(argv[i]);
+		if (input.is_open())
+		{
+			cout << "Reading from file: " << argv[i]<<endl;
+			Command command;
+			input >> command;
+			cout << "The command to execute is: " << command.getFirstWord() << command.getSecondWord()<<command.getName()<<endl;
+			Parser parser(command);
+			parser.Parse(command);
+			input.close();
+			cout << endl<<"--------------------------"<<endl;
+		}
+	}
 }
+//bun deci asta merge DAR
+//el a zis in requirements ala ca vrea sa citim din fisiere text (Command1.txt etc) sau cel putin eu asta am inteles
+//ideea e ca din fisier txt nu citeste exact comanda. De ex nu citeste ghilimelele ca lumea (incearca sa bagi un insert, un select 
+//sau un create intr-unul dintre txt-uri sa vezi ca da InvalidCommand bla bla)
+//acum nuj cum sa facem transformarea din txt in bin, daca apuci sa vezi tu azi super, daca nu, ma uit eu maine
