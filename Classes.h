@@ -428,9 +428,10 @@ private:
 				copyEditable = copyEditable.erase(copyEditable.find_first_of('I'), 11);
 				cout << endl << "We create new table " << copyEditable;
 			}
-		}
 			else
 				throw new InvalidCommandException("wrong if not exists", 0);
+		}
+			
 		if (function.checkAsciiValue(copyEditable, 'a', 'z') != 0) {
 			throw new InvalidCommandException("Wrong table name", 0);
 		}
@@ -755,59 +756,6 @@ public:
 		insertValidation(command.getName());
 	}
 private:
-	bool findChars(string command, char* chars) {
-		int i = 0;
-		int counter = 0;
-		while (i < strlen(chars)) {
-			for (int j = 0; j < command.length(); j++) {
-				if (chars[i] == command[j])
-					counter++;
-			}
-			i++;
-		}
-		if (counter)
-			return true;
-		else return false;
-	}
-
-	bool checkAsciiValue(string str, char a, char b) {
-		int counter = 0;
-		for (int i = 0; i < str.length(); i++)
-			if (str[i]<a || str[i]>b)
-				counter++;
-		if (counter)
-			return true;
-		else return false;
-	}
-
-	int nrChars(string str, char a, int& counter) {
-		counter = 0;
-		for (int i = 0; i < str.length(); i++) {
-			if (str[i] == a)
-				counter++;
-		}
-		return counter;
-	}
-
-	//MODIFICARI VALI 
-	string stringWithoutSpaces(string str) {
-		str.erase(remove(str.begin(), str.end(), ' '), str.end());
-		return str;
-	}
-
-	string stringWithoutCommasOrSpaces(string str) {
-		str.erase(remove(str.begin(), str.end(), ' '), str.end());
-		int i = 0;
-		while (i < str.length()) {
-			if (str[i] == ',' && str[i + 1] == '(' && str[i - 1] == ')') {
-				str.erase(i, 1);
-				i--;
-			}
-			i++;
-		}
-		return str;
-	}
-
 	void insertValidation(string Command) {
 		string newCommand = Command;
 		string editable;
@@ -819,12 +767,12 @@ private:
 		int numberOfParam = 4; // ATENTIE !! ACEST NUMAR SE VA PRIMI DIN CREATE TABLE la APELARE CUMVA
 
 		//validare paranteze 
-		if (nrChars(newCommand, '(', noParam) != 1 && nrChars(newCommand, ')', noParam) != 1) {
+		if (function.nrChars(newCommand, '(', noParam) != 1 && function.nrChars(newCommand, ')', noParam) != 1) {
 			throw new InvalidCommandException("paranteze gresite ", 0);
 		}
 
 		editable = newCommand.substr(0, newCommand.find_first_of('('));
-		copyEditable = stringWithoutSpaces(editable);
+		copyEditable = function.stringWithoutSpaces(editable);
 
 		//aici in parametrii avem numele tabelului: studenti
 		parametriiTabel = copyEditable.substr(0, copyEditable.find_first_of('V'));
@@ -846,8 +794,8 @@ private:
 
 		newCommand.erase(0, editable.length()); // newCommand devine (1,"John","1001")
 		editable = newCommand.substr(newCommand.find_first_not_of('('), newCommand.find_last_of(')') - 1); //editable devine 1,"John","10001"
-		editable = stringWithoutSpaces(editable);  // se elimina spatiile desi in cerinta reiese ca nu ar exista spatii 
-		noParam = nrChars(editable, ',', noParam) + 1;  // in functie de nr de virgule primim nr parametrii  no=3
+		editable = function.stringWithoutSpaces(editable);  // se elimina spatiile desi in cerinta reiese ca nu ar exista spatii 
+		noParam = function.nrChars(editable, ',', noParam) + 1;  // in functie de nr de virgule primim nr parametrii  no=3
 
 		// AICI MAI ESTE NEVOIE DE O VALIDARE CARE SA VERIFICE DACA NUMARUL COLOANELOR RESPECTA NUMARUL VIRGULELOR + 1 CARE SE VA AFLA IN FUNCTIE DE VALOAREA DIN CREATE A TABELULUI 
 		// INSERT INTO studenti VALUES (1,”John” ”1001”)  -- exemplul ruleaza desi e gresit.
@@ -856,19 +804,19 @@ private:
 		while (startPoint < noParam) {
 			parametriiTabel = editable.substr(0, editable.find_first_of(','));
 			int temp = 0;
-			if (nrChars(parametriiTabel, '"', temp)) {
+			if (function.nrChars(parametriiTabel, '"', temp)) {
 				string temp = parametriiTabel.substr(1, parametriiTabel.find_last_of('"') - 1);
 				cout << endl << "Parametrul tabel la iteratie " << startPoint << " este " << temp << " si este tip string";
 			}
 			else {
 				float value;
 				string temporary = parametriiTabel;
-				if (nrChars(temporary, '.', temp) > 1)
+				if (function.nrChars(temporary, '.', temp) > 1)
 					throw new InvalidCommandException("too many points", 0);
-				else if (nrChars(temporary, '.', temp) == 1) {
+				else if (function.nrChars(temporary, '.', temp) == 1) {
 					temporary = temporary.erase(temporary.find_first_of('.'), 1);
 				}
-				if (checkAsciiValue(temporary, '0', '9')) {
+				if (function.checkAsciiValue(temporary, '0', '9')) {
 					throw new InvalidCommandException("nu este string dar are litere", 0);
 				}
 				else {
