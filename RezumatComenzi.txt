@@ -1,0 +1,118 @@
+1. Exceptie
+
+2. Useful functions:
+	- string extract(string str, char a, char b, int& counter1, int& counter2)
+	- bool findChars(string command, const char* chars)
+	- bool checkAsciiValue(string str, char a, char b)
+	- int nrChars(string str, char a, int& counter)
+	- string stringWithoutSpaces(string str)
+	- string subStringWithoutSpaces(string str)
+	- string stringWithoutCommasOrSpaces (string str)
+	- static void writeStringToBin(ofstream& binFile, string str)
+	- static void readStringFromBin(ifstream& binFile, string str)
+
+3. Command:
+	- void setWords(string& name, string& commandFirst, string& commandSecond)
+	- void checkCommand(string commandFirst, string commandSecond)
+	- setters/getters:
+		- void setName(string commandName)
+		- string getName()
+		- string getFirstWord()
+		- string getSecondWord()
+	- operators:
+		- string operator -(string substring)
+		- Command operator=(Command command)
+		- Command operator--(int)
+		- Command operator--()
+		- bool operator ==
+		- void operator >>(ifstream& file, Command &command)
+		- void operator >>(istream& input, Command& command)
+		- void operator <<(ostream& out, Command command)
+	-write/read:
+		- void writeCommandToBin(ofstream& binFile)
+
+4. DropCommand
+	-Constructori:
+		- DropCommand(Command command) 
+	- void checkDrop(string commandName)
+	- void doDrop(string commandName)
+
+5. DisplayCommand
+	- Constructori:
+		-DisplayCommand(Command command)
+	- void checkDisplay(string commandName)
+
+6. CreateCommand
+	- Constructori:
+		- CreateCommand(Command command)
+	- void createParamVandPars(string command, string& cName, string& cType, int& cDim, string& defaultVal)
+	- void ValidareSerioasaCreate(string commanda)
+
+7. SelectCommand
+	- Constructori:
+		- SelectCommand(Command command)
+	- void checkSelect(string commandName)
+
+8. UpdateCommand
+	- Constructori:
+		- UpdateCommand(Command command)
+	- void checkUpdate(string commandName)
+
+9. DeleteCommand
+	- Constructori:
+		- DeleteCommand(Command command)
+	- void checkDelete(string commandName)
+
+10. InsertCommand
+	- Constructori:
+		- InsertCommand(Command command)
+	- void insertValidation(string Command)
+
+11. Parser 
+	- Constructori:
+		- Parser(Command command)
+	- void Parse(Command command)
+
+12. UtilTable
+	- ?
+
+13. ColumnAttribute
+	- Constructori:
+		- ColumnAttribute(string Attribute)
+		- ColumnAttribute()
+	- void writeAttirbuteToBin(ofstream&File)
+	- void readAttributeFromBin(ifstream& File)
+
+14. TableColumn
+	- Constructori:
+		- TableColumn(const char* name, string type, int dimension, string defValue, int NoAttributes)
+		- TableColumn()
+	- Destructor:
+		~TableColumn()
+	-Copy Constructor:
+		- TableColumn(const TableColumn& newColumn)
+	- Operatori:
+		- void operator=(const TableColumn& newColumn)
+		- void operator<<(ColumnAttribute attribute)
+		- void operator+=(ColumnAttribute column)
+	-Read/Write:
+		-Binary:
+			- void writeColumnToBin(ofstream& File)
+			- void readColumnFromBin(ifstream& File)
+
+15. Table
+	- Constructori:
+		- Table(const char* tableName)
+	- Destructori:
+		- ~Table()
+	- Copy Constructor:
+		- Table(const Table& table)
+	- Operatori:
+		- void operator=(const Table& table)
+		- void operator<<(TableColumn column)
+		- void operator+=(TableColumn column)
+	- Read/Write:
+		-Binary:
+			- void writeTableToBin(string fileName)
+			- void readTableFromBin(string fileName)
+	
