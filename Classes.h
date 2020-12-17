@@ -1,6 +1,9 @@
+//!!!!!!!!THE FILES CONTAINING THE TABLES ARE BINARY AND THEY HAVE THE FOLLOWING NAME FORMAT: table_name.bin (ex:Studenti.bin)
+
 #pragma once
 #include <iostream>
 #include <string>
+#include <fstream>
 using namespace std;
 
 //Exceptions:
@@ -115,6 +118,25 @@ public:
 		}
 		return str;
 	}
+
+	static void writeStringToBin(ofstream& binFile, string str)
+	{
+		int dim=str.size()+1;
+		binFile.write((char*)&dim, sizeof(int));
+		binFile.write(str.c_str(), dim * sizeof(char));
+	}
+
+
+	static void readStringFromBin(ifstream& binFile, string str)
+	{
+		int dim;
+		binFile.read((char*)dim, sizeof(int));
+		char buffer[1000];
+		binFile.read(buffer, dim * sizeof(char));
+		str = (string)buffer;
+	}
+
+
 };
 
 class Command
@@ -233,6 +255,17 @@ public:
 			return false;
 		}
 	}
+
+	void writeCommandToBin(ofstream& binFile)
+	{
+		UsefulFunctions::writeStringToBin(binFile, this->commandFirst);
+		if (commandSecond != "")
+		{
+			UsefulFunctions::writeStringToBin(binFile, this->commandSecond);
+		}
+		UsefulFunctions::writeStringToBin(binFile, this->name);
+	}
+
 	friend void operator <<(ostream& out, Command command);
 	friend void operator >>(istream& input, Command& command);
 	friend string operator -(string string1, string string2);
@@ -284,7 +317,7 @@ public:
 	DropCommand(Command command)
 	{
 		checkDrop(command.getName());
-
+		doDrop(command.getName());
 	}
 private:
 	void checkDrop(string commandName)
@@ -298,6 +331,11 @@ private:
 		{
 			cout << "DONE";
 		}
+	}
+
+	void doDrop(string commandName)
+	{
+
 	}
 };
 
@@ -939,7 +977,53 @@ public:
 	{
 
 	}
-	//friend void operator<<(ofstream& write, ColumnAttribute& attribute);
+	
+	void writeAttirbuteToBin(ofstream&File)
+	{
+		//write the value (string)
+		function.writeStringToBin(File, this->value);
+
+		//write the type:
+		//here, the type will not appear in the bin as enum (idk how to do this) => it will appear as a string.
+		//the reading process will transform the string red from the file to an enum, so the type will never explicitly be other than enum to the user 
+		if (this->type == FLOAT)
+		{
+			function.writeStringToBin(File, "FLOAT");
+		}
+		if (this->type == INTEGER)
+		{
+			function.writeStringToBin(File, "INTEGER");
+		}
+		if (this->type == STRING)
+		{
+			function.writeStringToBin(File, "STRING");
+		}
+	}
+
+	void readAttributeFromBin(ifstream& File)
+	{
+		//reading the value (string)
+		function.readStringFromBin(File, this->value);
+
+
+		//reading the type (enum)
+		//we read a string object from the bin file, as this is the way in which it has been written, and we transform it into an enum type
+		//we need a buffer in which to read:
+		string buffer;
+		function.readStringFromBin(File, buffer);
+		if (buffer == "FLOAT")
+		{
+			this->type = FLOAT;
+		}
+		if (buffer == "INTEGER")
+		{
+			this->type = INTEGER;
+		}
+		if (buffer == "STRING")
+		{
+			this->type = STRING;
+		}
+	}
 };
 
 class TableColumn {
@@ -947,17 +1031,21 @@ class TableColumn {
 	string columnType = "";
 	int dimension = 0;
 	string defaultValue = "";
-
+	int noAttributes=0;
 	ColumnAttribute* attributes = nullptr;
 
 public:
-	TableColumn(const char* name, string type, int dimension, string defValue) {
+	TableColumn(const char* name, string type, int dimension, string defValue, int NoAttributes) {
 		strcpy_s(this->columnName, 100, name);
 		this->columnName[99] = '\0';
 		this->columnType = type;
 		this->dimension = dimension;
 		this->defaultValue = defValue;
 
+		//VALI: am adaugat nr de atribute pt ca nu putem sa avem un vector in binar fara sa stim exact dimensiunea (sau cel putin asa a zis Boja)
+		//deci, in create o sa avem o functie care numara cate atribute are coloana 
+		//aslo, de fiecare data cand facem un insert trebuie sa creasca nr de atribute
+		this->noAttributes = NoAttributes;
 	}
 private:
 	TableColumn() {
@@ -1009,6 +1097,48 @@ public:
 
 	void operator+=(ColumnAttribute column) {
 		*this << column;
+	}
+
+	void writeColumnToBin(ofstream& File)
+	{
+		//write the name(char):
+		File.write(this->columnName, sizeof(TableColumn::columnName) * sizeof(char));
+
+		//write the columnType (aici o sa fac dupa ce rezolvi tu Vali cu constructorul in functie de tipul atributului (vezi mai sus))
+
+		//write the dimension(int):
+		File.write((char*)this->dimension, sizeof(int));
+
+		//write the default value (string):
+		UsefulFunctions::writeStringToBin(File, this->defaultValue);
+
+		//write the array of attributes (the pointer to it):
+		File.write((char*)this->noAttributes, sizeof(int));
+		for (int i = 0; i < noAttributes; i++)
+		{
+			attributes[i].writeAttirbuteToBin(File);
+		}
+	}
+
+	void readColumnFromBin(ifstream& File)
+	{
+		//read the name(char):
+		File.read(this->columnName, sizeof(TableColumn::columnName) * sizeof(char));
+
+		//read the columnType (aici o sa fac dupa ce rezolvi tu Vali cu constructorul in functie de tipul atributului (vezi mai sus))
+
+		//write the dimension(int):
+		File.read((char*)this->dimension, sizeof(int));
+
+		//write the default value (string):
+		UsefulFunctions::readStringFromBin(File, this->defaultValue);
+
+		//write the array of attributes (the pointer to it):
+		File.read((char*)this->noAttributes, sizeof(int));
+		for (int i = 0; i < noAttributes; i++)
+		{
+			attributes[i].readAttributeFromBin(File);
+		}
 	}
 
 	friend class Table;
@@ -1069,6 +1199,53 @@ public:
 	}
 	void operator+=(TableColumn column) {
 		*this << column;
+	}
+
+	void writeTableToBin(string fileName)
+	{
+		ofstream File(fileName, ios::out | ios::binary | ios::trunc);
+		if (File.is_open())
+		{
+			//write the table name (char):
+			File.write(this->tableName, sizeof(Table::tableName) * sizeof(char));
+
+			//write the columns:
+			File.write((char*)this->noColumns, sizeof(int));
+			for (int i = 0; i < this->noColumns; i++)
+			{
+				columns[i].writeColumnToBin(File);
+			}
+
+			File.close();
+		}
+		else
+		{
+			cout << "THE FILE IS NOT OPEN SO YOU CAN'T WRITE A TABLE IN IT! OPEN THE FILE!";
+		}
+		
+	}
+
+	void readTableFromBin(string fileName)
+	{
+		ifstream File(fileName, ios::in | ios::binary);
+		if (File.is_open())
+		{
+			//write the table name (char):
+			File.read(this->tableName, sizeof(Table::tableName) * sizeof(char));
+
+			//write the columns:
+			File.read((char*)this->noColumns, sizeof(int));
+			for (int i = 0; i < this->noColumns; i++)
+			{
+				columns[i].readColumnFromBin(File);
+			}
+
+			File.close();
+		}
+		else
+		{
+			cout << "THE FILE IS NOT OPEN SO YOU CAN'T READ A TABLE FROM IT! OPEN THE FILE!";
+		}
 	}
 
 	friend class CreateCommand;
