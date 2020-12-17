@@ -1,3 +1,7 @@
+- aici avem toate clasele si functiile din fiecare, ca sa ni le organizam mai bine si sa gasim mai usor ce cautam
+- de fiecare data cand adaugati o clasa/functie PLIZ scrieti si header-ul in fisier, la locul potrivit, ca sa pastram coerenta
+- Pwp
+
 1. Exceptie
 
 2. Useful functions:
