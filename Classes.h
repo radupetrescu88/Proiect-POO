@@ -42,6 +42,19 @@ public:
 	const char* SIGNS = "(), ";
 	const char* NoCAPS = "abcdefghijklmnoprstuvxyz";
 	const char* NUMBERS = "0123456789";
+
+	void copyFile(fstream& inFile, fstream& outFile)
+	{
+		string line;
+		if (inFile && outFile)
+		{
+			while (getline(inFile, line))
+			{
+				outFile << line << "\n";
+			}
+		}
+	}
+
 	string extract(string str, char a, char b, int& counter1, int& counter2) {
 		
 		string subString;
@@ -134,6 +147,21 @@ public:
 		char buffer[1000];
 		binFile.read(buffer, dim * sizeof(char));
 		str = (string)buffer;
+	}
+
+	bool isTabelInFile(fstream& textFile, string tableName)
+	{
+		//we consider the file to be open
+		string table=".";
+		while (getline(textFile, table))
+		{
+			if (table == tableName)
+			{
+				return true;
+			}
+		}
+		if (table == ".")
+			return false;
 	}
 
 
@@ -305,6 +333,8 @@ void operator <<(ostream& out, Command command) {
 	out << endl << "Operator Command:" << command.getName();
 }
 
+
+
 //THE COMMANDS
 
 //1. DROP
@@ -312,11 +342,15 @@ void operator <<(ostream& out, Command command) {
 class DropCommand
 {
 	Command command;
+	string tableName="";
 	UsefulFunctions function;
+	fstream theDatabase;
 public:
-	DropCommand(Command command)
+	DropCommand(Command command, fstream &theDatabase)
 	{
 		checkDrop(command.getName());
+		theDatabase.open("copyDatabase.txt", ios::in | ios::out);
+		function.copyFile(theDatabase, this->theDatabase);
 		doDrop(command.getName());
 	}
 private:
@@ -329,13 +363,25 @@ private:
 		}
 		else
 		{
-			cout << "DONE";
+			this->tableName = commandName;
+			cout << "The command is correct. We are now executing it: ";
 		}
 	}
 
-	void doDrop(string commandName)
+	void doDrop(string tableName)
 	{
+		string str="nu e bine";
+		getline(this->theDatabase, str);
+		cout << str;
+		if (function.isTabelInFile(this->theDatabase, tableName) == false)
+		{
+			cout << endl << "esti aici";
+			throw new InvalidCommandException("There is no tabel with this name to be dropped!", 0);
+		}
+		else
+		{
 
+		}
 	}
 };
 
@@ -346,11 +392,13 @@ class DisplayCommand
 	Command command;
 	string table_name = " ";
 	UsefulFunctions function;
+	fstream theDatabase;
 public:
 
-	DisplayCommand(Command command)
+	DisplayCommand(Command command, fstream &theDatabase)
 	{
 		checkDisplay(command.getName());
+		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void checkDisplay(string commandName)
@@ -362,21 +410,25 @@ private:
 		}
 		else
 		{
-			cout << "DONE";
+			cout << "The command is correct. We are now executing it: ";
 		}
 	}
 };
 
 //3.CREATE
-//NU MERGE PENTRU IF NOT EXIST
+//in constructor, dupa validare, adaugi o functie doCreate, care primeste parametrii pe care i-a scos Validare din comanda si construieste
+//un fisier binar, cu titlul numeTabel.bin, care contine in ordine coloanele 
+//also, doCreate adauga numele tabelului pe care il construiesti pe o linie noua (fara spatiu dupa) in fisierul txt theDatabase (care e deschis si cu in si cu out deci poti sa si citesti sa si scrii in el)
 class CreateCommand
 {
 	Command command;
 	UsefulFunctions function;
+	fstream theDatabase;
 public:
-	CreateCommand(Command command)
+	CreateCommand(Command command, fstream &theDatabase)
 	{
 		ValidareSerioasaCreate(command.getName());
+		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 
@@ -429,7 +481,7 @@ private:
 					throw new InvalidCommandException("Wrong third parameter", 0);
 				}
 			}
-			// here i dont know for sure what checks needs to be done but the passing to the cValue its made 
+			// here i dont know for sure what checks needs to be The command is correct. We are now executing it:  but the passing to the cValue its made 
 			if (contorEditable == 3) {
 				if (parametriiTabel.find_first_of('’')) {
 					parametriiTabel.erase(remove(parametriiTabel.begin(), parametriiTabel.end(), '’'), parametriiTabel.end());
@@ -483,7 +535,7 @@ private:
 			else {
 				if (function.nrChars(newCommand, '(', counter) == 1) {
 					createParamVandPars(newCommand, name, type, dim, value);
-					cout << "DONE!";
+					cout << "The command is correct. We are now executing it: !";
 				}
 				else   // else we will strip the columns by the commas and spaces dividing them and then call the functions one by one while also deleting from the command string
 				{
@@ -495,7 +547,7 @@ private:
 						createParamVandPars(parametriiTabel, name, type, dim, value);
 						newCommand.erase(0, parametriiTabel.length());
 					}
-					cout << endl << "DONE!";
+					cout << endl << "The command is correct. We are now executing it: !";
 				}
 			}
 
@@ -510,10 +562,12 @@ class SelectCommand
 {
 	Command command;
 	UsefulFunctions function;
+	fstream theDatabase;
 public:
-	SelectCommand(Command command)
+	SelectCommand(Command command, fstream &theDatabase)
 	{
 		checkSelect(command.getName());
+		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void checkSelect(string commandName)
@@ -610,7 +664,7 @@ private:
 				throw new InvalidCommandException("Not proper value name OR multiple conditions", 0);
 			}
 		}
-		cout << "DONE!";
+		cout << "The command is correct. We are now executing it: !";
 	}
 };
 
@@ -620,10 +674,12 @@ class UpdateCommand
 {
 	Command command;
 	UsefulFunctions function;
+	fstream theDatabase;
 public:
-	UpdateCommand(Command command)
+	UpdateCommand(Command command, fstream &theDatabase)
 	{
 		checkUpdate(command.getName());
+		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void checkUpdate(string commandName)
@@ -707,7 +763,7 @@ private:
 		{
 			throw new InvalidCommandException("The UPDATE command hasn't got the proper column value sign", 0);
 		}
-		cout << "DONE!";
+		cout << "The command is correct. We are now executing it: !";
 	}
 };
 
@@ -717,10 +773,12 @@ class DeleteCommand {
 
 	Command command;
 	UsefulFunctions function;
+	fstream theDatabase;
 public:
-	DeleteCommand(Command command)
+	DeleteCommand(Command command, fstream &theDatabase)
 	{
 		checkDelete(command.getName());
+		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void checkDelete(string commandName)  // "table_name WHERE column_name = value"
@@ -778,7 +836,7 @@ private:
 		{
 			throw new InvalidCommandException("The DELETE command hasn't got the proper column value sign", 0);
 		}
-		cout << "DONE!";
+		cout << "The command is correct. We are now executing it: !";
 	}
 };
 
@@ -786,12 +844,13 @@ private:
 //7.INSERT
 class InsertCommand
 {
-	//o fac eu pe asta
 	Command command;
 	UsefulFunctions function;
+	fstream theDatabase;
 public:
-	InsertCommand(Command command) {
+	InsertCommand(Command command, fstream &theDatabase) {
 		insertValidation(command.getName());
+		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void insertValidation(string Command) {
@@ -870,50 +929,54 @@ private:
 };
 
 
+
 //PARSER-UL
 class Parser
 {
 	Command command;
-//	UsefulFunctions function;
+	UsefulFunctions function;
 	string name = command.getName();
 	string FirstWord = "";
 	string SecondWord = "";
+	fstream theDatabase;
 public:
 
-	Parser(Command command)
+	Parser(Command command, string TheDatabase)
 	{
 		this->FirstWord = command.getFirstWord();
 		this->SecondWord = command.getSecondWord();
+		theDatabase.open(TheDatabase, ios::in | ios::out);
+		//function.copyFile(theDatabase, this->theDatabase);
 	}
 	void Parse(Command command)
 	{
 		if (FirstWord == "CREATE")
 		{
-			CreateCommand object(command);
+			CreateCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "DROP")
 		{
-			DropCommand object(command);
+			DropCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "DELETE")
 		{
-			DeleteCommand object(command);
+			DeleteCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "DISPLAY")
 		{
-			DisplayCommand object(command);
+			DisplayCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "UPDATE")
 		{
-			UpdateCommand object(command);
+			UpdateCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "SELECT")
 		{
-			SelectCommand object(command);
+			SelectCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "INSERT")
 		{
-			InsertCommand object(command);
+			InsertCommand object(command, this->theDatabase);
 		}
 	}
 
@@ -1041,8 +1104,7 @@ public:
 		this->columnType = type;
 		this->dimension = dimension;
 		this->defaultValue = defValue;
-
-		//VALI: am adaugat nr de atribute pt ca nu putem sa avem un vector in binar fara sa stim exact dimensiunea (sau cel putin asa a zis Boja)
+//VALI: am adaugat nr de atribute pt ca nu putem sa avem un vector in binar fara sa stim exact dimensiunea (sau cel putin asa a zis Boja)
 		//deci, in create o sa avem o functie care numara cate atribute are coloana 
 		//aslo, de fiecare data cand facem un insert trebuie sa creasca nr de atribute
 		this->noAttributes = NoAttributes;
@@ -1201,9 +1263,9 @@ public:
 		*this << column;
 	}
 
-	void writeTableToBin(string fileName)
+	void writeTableToBin(string tableName)
 	{
-		ofstream File(fileName, ios::out | ios::binary | ios::trunc);
+		ofstream File(tableName, ios::out | ios::binary | ios::trunc);
 		if (File.is_open())
 		{
 			//write the table name (char):
