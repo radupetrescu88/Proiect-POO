@@ -18,21 +18,29 @@ int main(int argc, char* argv[])
 		cout << "argv[" << i << "]=" << argv[i]<<endl;
 	}	
 	
-	ifstream theCommands;
-	theCommands.open(argv[1], ios::in);
+	ifstream theCommandsFile;
+	theCommandsFile.open(argv[1], ios::in);
+	File theCommands(argv[1]);
+	theCommands.setContent(theCommandsFile);
 
-	fstream theDatabase;
-	theDatabase.open(argv[2], ios::in | ios::out);
+	ifstream theDatabaseFile;
+	theDatabaseFile.open(argv[2], ios::in);
+	File theDatabase(argv[2]);
+	theDatabase.setContent(theDatabaseFile);
 
 	Command command;
 	string theCommand = "";
+	int noOfCommands = theCommands.getNoLines();
+	int i = 0;
 
-	while (theCommands.eof()!=true)
+	while (noOfCommands != 0)
 	{
-		theCommands >> command;
-		cout <<endl<< "-----------------------------------------------------"<<endl;
-		cout << "The command to execute is: " << command.getFirstWord() << command.getSecondWord() << command.getName() << endl;
-		Parser parser(command, argv[2]);
-		parser.Parse(command);
+		theCommand = theCommands.getTheLine(i);
+		cout << "The command to execute is: " << theCommand << endl;
+		command.setName(theCommand);
+		Parser parsing(command, theDatabase);
+		parsing.Parse(command);
+		noOfCommands--;
+		i++;
 	}
 }
