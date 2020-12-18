@@ -1,4 +1,4 @@
-//DE FIECARE DATA CAND SE CREAZA UN TABEL, NUMELE LUI APARE AICI
+7
 studenti
 elevi
 profesori
