@@ -6,6 +6,103 @@
 #include <fstream>
 using namespace std;
 
+enum FileType{BIN, TXT, CSV};
+
+class File
+{
+	string nameOfFile = "";
+	FileType type = TXT;
+	int noLines = 0;
+	string *lines;
+public:
+	File(string NameOfFile)
+	{
+		this->nameOfFile = NameOfFile;
+		int counter1 =0,  counter2 = 0;
+		if (this->nameOfFile.substr(this->nameOfFile.find_first_of('.'), 4)==".txt")
+		{
+			this->type = TXT;
+		}
+		if (this->nameOfFile.substr(this->nameOfFile.find_first_of('.'), 4) == ".bin")
+		{
+			this->type = BIN;
+		}
+		if (this->nameOfFile.substr(this->nameOfFile.find_first_of('.'), 4) == ".csv")
+		{
+			this->type = CSV;
+		}
+	}
+
+	File ()
+	{
+
+	}
+
+	File(File& oldFile)
+	{
+		this->nameOfFile = oldFile.nameOfFile;
+		this->type = oldFile.type;
+		this->noLines = oldFile.noLines;
+		for (int i = 1; i < oldFile.noLines; i++)
+		{
+			this->lines[i] = oldFile.lines[i];
+		}
+	}
+
+	int getNoLines()
+	{
+		return this->noLines;
+	}
+
+	void deleteTable(int i)
+	{
+		for (int j = i; j < this->noLines; j++)
+			lines[j] = lines[j + 1];
+		this->noLines--;
+	}
+
+	string getTheLine(int i)
+	{
+		return lines[i];
+	}
+
+	int searchFile(const char numeTabel[])
+	{
+		int i = 0; 
+		for (i = 0; i < this->noLines; i++)
+		{
+			if (strcmp(lines[i].c_str(), numeTabel) == 0)
+			{
+				return i;
+				break;
+			}
+		}
+		return -1;
+	}
+
+	void setContent(ifstream &File)
+	{
+		string line;
+		getline(File, line);
+		int i = stoi(line);
+		this->noLines=i;
+		lines[0] = line;
+		i = 1;
+		lines = new string[100];
+		while (File.eof() == false)
+		{
+			getline(File, line);
+			lines[i] = line;
+			i++;
+		}
+	}
+
+	void writeObjectAsFile(ofstream file)
+	{
+		
+	}
+};
+
 //Exceptions:
 class InvalidCommandException
 {
@@ -43,17 +140,6 @@ public:
 	const char* NoCAPS = "abcdefghijklmnoprstuvxyz";
 	const char* NUMBERS = "0123456789";
 
-	void copyFile(fstream& inFile, fstream& outFile)
-	{
-		string line;
-		if (inFile && outFile)
-		{
-			while (getline(inFile, line))
-			{
-				outFile << line << "\n";
-			}
-		}
-	}
 
 	string extract(string str, char a, char b, int& counter1, int& counter2) {
 		
@@ -344,13 +430,11 @@ class DropCommand
 	Command command;
 	string tableName="";
 	UsefulFunctions function;
-	fstream theDatabase;
+	File theDatabase;
 public:
-	DropCommand(Command command, fstream &theDatabase)
+	DropCommand(Command command, File theDatabase)
 	{
 		checkDrop(command.getName());
-		theDatabase.open("copyDatabase.txt", ios::in | ios::out);
-		function.copyFile(theDatabase, this->theDatabase);
 		doDrop(command.getName());
 	}
 private:
@@ -370,17 +454,14 @@ private:
 
 	void doDrop(string tableName)
 	{
-		string str="nu e bine";
-		getline(this->theDatabase, str);
-		cout << str;
-		if (function.isTabelInFile(this->theDatabase, tableName) == false)
+		int pozitionInFile = theDatabase.searchFile(tableName.c_str());
+		if (pozitionInFile==-1)
 		{
-			cout << endl << "esti aici";
 			throw new InvalidCommandException("There is no tabel with this name to be dropped!", 0);
 		}
 		else
 		{
-
+			theDatabase.deleteTable(pozitionInFile);
 		}
 	}
 };
@@ -398,7 +479,6 @@ public:
 	DisplayCommand(Command command, fstream &theDatabase)
 	{
 		checkDisplay(command.getName());
-		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void checkDisplay(string commandName)
@@ -428,7 +508,6 @@ public:
 	CreateCommand(Command command, fstream &theDatabase)
 	{
 		ValidareSerioasaCreate(command.getName());
-		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 
@@ -567,7 +646,6 @@ public:
 	SelectCommand(Command command, fstream &theDatabase)
 	{
 		checkSelect(command.getName());
-		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void checkSelect(string commandName)
@@ -679,7 +757,6 @@ public:
 	UpdateCommand(Command command, fstream &theDatabase)
 	{
 		checkUpdate(command.getName());
-		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void checkUpdate(string commandName)
@@ -778,7 +855,6 @@ public:
 	DeleteCommand(Command command, fstream &theDatabase)
 	{
 		checkDelete(command.getName());
-		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void checkDelete(string commandName)  // "table_name WHERE column_name = value"
@@ -850,7 +926,6 @@ class InsertCommand
 public:
 	InsertCommand(Command command, fstream &theDatabase) {
 		insertValidation(command.getName());
-		function.copyFile(theDatabase, this->theDatabase);
 	}
 private:
 	void insertValidation(string Command) {
@@ -938,21 +1013,20 @@ class Parser
 	string name = command.getName();
 	string FirstWord = "";
 	string SecondWord = "";
-	fstream theDatabase;
+	File theDatabase;
 public:
 
-	Parser(Command command, string TheDatabase)
+	Parser(Command command, File theDatabase)
 	{
 		this->FirstWord = command.getFirstWord();
 		this->SecondWord = command.getSecondWord();
-		theDatabase.open(TheDatabase, ios::in | ios::out);
-		//function.copyFile(theDatabase, this->theDatabase);
+		this->theDatabase = theDatabase;
 	}
 	void Parse(Command command)
 	{
 		if (FirstWord == "CREATE")
 		{
-			CreateCommand object(command, this->theDatabase);
+		//	CreateCommand object(command);
 		}
 		if (FirstWord == "DROP")
 		{
@@ -960,23 +1034,23 @@ public:
 		}
 		if (FirstWord == "DELETE")
 		{
-			DeleteCommand object(command, this->theDatabase);
+		//	DeleteCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "DISPLAY")
 		{
-			DisplayCommand object(command, this->theDatabase);
+		//	DisplayCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "UPDATE")
 		{
-			UpdateCommand object(command, this->theDatabase);
+		//	UpdateCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "SELECT")
 		{
-			SelectCommand object(command, this->theDatabase);
+		//	SelectCommand object(command, this->theDatabase);
 		}
 		if (FirstWord == "INSERT")
 		{
-			InsertCommand object(command, this->theDatabase);
+		//	InsertCommand object(command, this->theDatabase);
 		}
 	}
 
