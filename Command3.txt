@@ -1,1 +1,0 @@
-SELECT (id,nume,grupa)  FROM  studenti WHERE id = 1
