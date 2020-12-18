@@ -1,0 +1,8 @@
+//DE FIECARE DATA CAND SE CREAZA UN TABEL, NUMELE LUI APARE AICI
+studenti
+elevi
+profesori
+oameni
+animale
+etc
+etc
