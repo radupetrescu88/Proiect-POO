@@ -1,2 +1,3 @@
+2
 DROP TABLE          studenti
 DROP TABLE      elevi
