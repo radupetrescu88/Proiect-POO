@@ -1115,7 +1115,7 @@ public:
 
 	}
 	
-	void writeAttirbuteToBin(ofstream&File)
+	void writeAttributeToBin(ofstream&File)
 	{
 		//write the value (string)
 		function.writeStringToBin(File, this->value);
